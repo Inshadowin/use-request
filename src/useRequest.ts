@@ -22,6 +22,13 @@ type UseRequestResultType<T, Args extends any[] = []> = [
   boolean
 ];
 
+type GlobalConfig = Pick<UseRequestConfig<any>, 'isCancel'>;
+
+let globalConfig: GlobalConfig = {};
+export const setupGlobals = (config: GlobalConfig) => {
+  globalConfig = { ...globalConfig, ...config };
+};
+
 export const useRequest = <T, Args extends any[] = []>(
   request: RequestFunctionType<T, Args>,
   config?: UseRequestConfig<T>
@@ -44,7 +51,8 @@ export const useRequest = <T, Args extends any[] = []>(
       onSuccess?.(result);
       return result;
     } catch (ex: any) {
-      if (!isMounted.current || config?.isCancel?.(ex)) return;
+      const isCancel = config?.isCancel || globalConfig?.isCancel;
+      if (!isMounted.current || isCancel?.(ex)) return;
 
       !!onError && onError?.(ex);
     } finally {

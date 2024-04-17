@@ -1,1 +1,1 @@
-export { useRequest } from './useRequest';
+export { useRequest, setupGlobals } from './useRequest';
