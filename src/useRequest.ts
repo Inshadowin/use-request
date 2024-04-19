@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { useIsMounted } from './useIsMounted';
+import { useIsCurrentRequest } from './useIsCurrentRequest';
 
 type RequestFunctionType<T, Args extends any[] = []> = (
   cancelToken: AbortSignal,
@@ -13,6 +14,7 @@ type UseRequestConfig<T> = {
   onError?: ((ex: Error) => void) | false;
 
   isCancel?: (ex: Error) => boolean;
+  resultMiddleware?: (result: Awaited<T>) => void;
 
   deps?: any[];
 };
@@ -22,7 +24,10 @@ type UseRequestResultType<T, Args extends any[] = []> = [
   boolean
 ];
 
-type GlobalConfig = Pick<UseRequestConfig<any>, 'isCancel'>;
+type GlobalConfig = Pick<
+  UseRequestConfig<any>,
+  'isCancel' | 'resultMiddleware'
+>;
 
 let globalConfig: GlobalConfig = {};
 export const setupGlobals = (config: GlobalConfig) => {
@@ -34,6 +39,7 @@ export const useRequest = <T, Args extends any[] = []>(
   config?: UseRequestConfig<T>
 ): UseRequestResultType<T, Args> => {
   const isMounted = useIsMounted();
+  const { getSnap } = useIsCurrentRequest();
   const [loading, setLoading] = useState(false);
   const controllerRef = useRef(new AbortController());
 
@@ -41,12 +47,16 @@ export const useRequest = <T, Args extends any[] = []>(
   const handlePerformRequest = async (...rest: Args) => {
     controllerRef.current?.abort?.();
     controllerRef.current = new AbortController();
+    const snap = getSnap();
 
     try {
       setLoading(true);
 
       const result = await request(controllerRef.current.signal, ...rest);
-      if (!isMounted.current || !result) return;
+      if (!snap.isCurrent() || !isMounted.current || !result) return;
+
+      config?.resultMiddleware?.(result);
+      globalConfig?.resultMiddleware?.(result);
 
       onSuccess?.(result);
       return result;

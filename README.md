@@ -13,7 +13,11 @@ import axios from 'axios';
 import { setupGlobals } from 'use-react-api-request';
 
 // or any other API-client that you use
-setupGlobals({ isCancel: axios.isCancel });
+setupGlobals({
+  isCancel: axios.isCancel,
+  // you can throw errors here
+  resultMiddleware: result => console.log(result),
+});
 ```
 
 ```tsx
@@ -27,6 +31,8 @@ const Component = () => {
       onError: () => {},
       onFinally: () => {},
       onSuccess: () => {},
+      resultMiddleware: (result: object) => {
+      }
       deps: ['will cancel out if this changes'],
     }
   );
