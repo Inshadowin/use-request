@@ -27,7 +27,7 @@ const Component = () => {
       onError: () => {},
       onFinally: () => {},
       onSuccess: () => {},
-      deps: ['will trigger if this changes'],
+      deps: ['will cancel out if this changes'],
     }
   );
 
