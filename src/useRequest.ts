@@ -46,7 +46,7 @@ export const useRequest = <T, Args extends any[] = []>(
       setLoading(true);
 
       const result = await request(controllerRef.current.signal, ...rest);
-      if (!isMounted.current) return;
+      if (!isMounted.current || !result) return;
 
       onSuccess?.(result);
       return result;
