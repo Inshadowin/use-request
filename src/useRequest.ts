@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import { useIsMounted } from './useIsMounted';
+import { useAbortController } from './useAbortController';
 import { useIsCurrentRequest } from './useIsCurrentRequest';
 
 type RequestFunctionType<T, Args extends any[] = []> = (
@@ -41,18 +42,18 @@ export const useRequest = <T, Args extends any[] = []>(
   const isMounted = useIsMounted();
   const { getSnap } = useIsCurrentRequest();
   const [loading, setLoading] = useState(false);
-  const controllerRef = useRef(new AbortController());
+  const controller = useAbortController(config.deps);
 
-  const { onSuccess, onFinally, onError } = config ?? {};
-  const handlePerformRequest = async (...rest: Args) => {
-    controllerRef.current?.abort?.();
-    controllerRef.current = new AbortController();
+  const handlePerformRequest = useCallback(async (...rest: Args) => {
+    const { onSuccess, onFinally, onError } = config ?? {};
+
+    controller.abort();
     const snap = getSnap();
 
     try {
       setLoading(true);
 
-      const result = await request(controllerRef.current.signal, ...rest);
+      const result = await request(controller.signal(), ...rest);
       if (!snap.isCurrent() || !isMounted.current || !result) return;
 
       config?.resultMiddleware?.(result);
@@ -71,14 +72,7 @@ export const useRequest = <T, Args extends any[] = []>(
       setLoading(false);
       onFinally?.();
     }
-  };
-
-  useEffect(() => {
-    return () => {
-      controllerRef.current?.abort?.();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, config?.deps ?? []);
+  }, []);
 
   return [handlePerformRequest, loading];
 };
