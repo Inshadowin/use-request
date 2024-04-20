@@ -12,10 +12,11 @@ npm i use-react-api-request
 import axios from 'axios';
 import { setupGlobals } from 'use-react-api-request';
 
-// or any other API-client that you use
 setupGlobals({
+  // or any other API-client that you use
   isCancel: axios.isCancel,
   // you can throw errors here
+  // I use it to handle { data: {}, error: string } results, etc.
   resultMiddleware: result => console.log(result),
 });
 ```
