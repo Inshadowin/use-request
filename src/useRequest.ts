@@ -72,7 +72,7 @@ export const useRequest = <T, Args extends any[] = []>(
       setLoading(false);
       onFinally?.();
     }
-  }, []);
+  }, config.deps ?? []);
 
   return [handlePerformRequest, loading];
 };
