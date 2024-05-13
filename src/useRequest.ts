@@ -4,12 +4,12 @@ import { useIsMounted } from './useIsMounted';
 import { useAbortController } from './useAbortController';
 import { useIsCurrentRequest } from './useIsCurrentRequest';
 
-type RequestFunctionType<T, Args extends any[] = []> = (
+export type RequestFunctionType<T, Args extends any[] = []> = (
   cancelToken: AbortSignal,
   ...rest: Args
 ) => Promise<T> | T;
 
-type UseRequestConfig<T> = {
+export type UseRequestConfig<T> = {
   onFinally?: () => void;
   onSuccess?: (result: T) => void;
   onError?: ((ex: Error) => void) | false;
@@ -20,12 +20,12 @@ type UseRequestConfig<T> = {
   deps?: any[];
 };
 
-type UseRequestResultType<T, Args extends any[] = []> = [
+export type UseRequestResultType<T, Args extends any[] = []> = [
   (...args: Args) => Promise<T | undefined>,
   boolean
 ];
 
-type GlobalConfig = Pick<
+export type GlobalConfig = Pick<
   UseRequestConfig<any>,
   'isCancel' | 'resultMiddleware'
 >;
