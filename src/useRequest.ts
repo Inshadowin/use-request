@@ -54,7 +54,7 @@ export const useRequest = <T, Args extends any[] = []>(
       setLoading(true);
 
       const result = await request(controller.signal(), ...rest);
-      if (!snap.isCurrent() || !isMounted.current || !result) return;
+      if (!snap.isCurrent() || !isMounted.current) return;
 
       config?.resultMiddleware?.(result);
       globalConfig?.resultMiddleware?.(result);
