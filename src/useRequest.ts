@@ -1,38 +1,27 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 import { useIsMounted } from './useIsMounted';
 import { useAbortController } from './useAbortController';
 import { useIsCurrentRequest } from './useIsCurrentRequest';
-
-export type RequestFunctionType<T, Args extends any[] = []> = (
-  cancelToken: AbortSignal,
-  ...rest: Args
-) => Promise<T> | T;
-
-export type UseRequestConfig<T> = {
-  onFinally?: () => void;
-  onSuccess?: (result: T) => void;
-  onError?: ((ex: Error) => void) | false;
-
-  isCancel?: (ex: Error) => boolean;
-  resultMiddleware?: (result: Awaited<T>) => void;
-
-  deps?: any[];
-};
-
-export type UseRequestResultType<T, Args extends any[] = []> = [
-  (...args: Args) => Promise<T | undefined>,
-  boolean
-];
-
-export type GlobalConfig = Pick<
-  UseRequestConfig<any>,
-  'isCancel' | 'resultMiddleware'
->;
+import type {
+  GlobalConfig,
+  UseRequestConfig,
+  CancelablePromise,
+  RequestFunctionType,
+  UseRequestResultType,
+} from './types';
 
 let globalConfig: GlobalConfig = {};
 export const setupGlobals = (config: GlobalConfig) => {
   globalConfig = { ...globalConfig, ...config };
+};
+
+const isCancelable = <T>(promise: unknown): promise is CancelablePromise<T> => {
+  return (
+    typeof promise === 'object' &&
+    'cancel' in promise &&
+    typeof promise.cancel === 'function'
+  );
 };
 
 export const useRequest = <T, Args extends any[] = []>(
@@ -41,6 +30,7 @@ export const useRequest = <T, Args extends any[] = []>(
 ): UseRequestResultType<T, Args> => {
   const isMounted = useIsMounted();
   const { getSnap } = useIsCurrentRequest();
+  const promiseRef = useRef<Promise<T> | T>(null);
   const [loading, setLoading] = useState(false);
   const controller = useAbortController(config.deps);
 
@@ -48,12 +38,17 @@ export const useRequest = <T, Args extends any[] = []>(
     const { onSuccess, onFinally, onError } = config ?? {};
 
     controller.abort();
+    if (isCancelable(promiseRef.current)) {
+      promiseRef.current.cancel();
+    }
     const snap = getSnap();
 
     try {
       setLoading(true);
 
-      const result = await request(controller.signal(), ...rest);
+      promiseRef.current = request(controller.signal(), ...rest);
+      const result = await promiseRef.current;
+
       if (!snap.isCurrent() || !isMounted.current) return;
 
       config?.resultMiddleware?.(result);

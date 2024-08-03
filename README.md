@@ -41,3 +41,7 @@ const Component = () => {
   const onClick = () => handleRequest('Addition');
 };
 ```
+
+## Cancelable Promise
+
+If your request is cancelable Promise - return it with 'cancel' function attached
