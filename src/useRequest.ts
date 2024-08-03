@@ -20,7 +20,7 @@ const isCancelable = <T>(promise: unknown): promise is CancelablePromise<T> => {
   return (
     typeof promise === 'object' &&
     'cancel' in promise &&
-    typeof promise.cancel === 'function'
+    typeof promise['cancel'] === 'function'
   );
 };
 
