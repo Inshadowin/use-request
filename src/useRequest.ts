@@ -18,6 +18,7 @@ export const setupGlobals = (config: GlobalConfig) => {
 
 const isCancelable = <T>(promise: unknown): promise is CancelablePromise<T> => {
   return (
+    !!promise &&
     typeof promise === 'object' &&
     'cancel' in promise &&
     typeof promise['cancel'] === 'function'
