@@ -24,14 +24,8 @@
   "homepage": "https://github.com/Inshadowin/use-request#readme",
   "keywords": [
     "react",
-    "use-breakpoint",
-    "use-breakpoints",
-    "breakpoints",
-    "md",
-    "lg",
-    "xl",
-    "2xl",
-    "responsive"
+    "use-request",
+    "request"
   ],
   "jest": {
     "roots": [
